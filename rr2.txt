@@ -1,0 +1,41 @@
+def rr():
+    docname = (sys.argv[1])
+    method = (sys.argv[2])
+    # creates a variable from the user input to define timeslice
+    timeslice = int(re.search(r'\d+', method).group())
+    # use pandas to create a 2-d data frame from tab delimited file, set column 0 (process names) to string, set column
+    # 1 & 2 (start time and duration, respectively) to integers
+    d = pd.read_csv(docname, delimiter="\t", header=None, dtype={'0': str, '1': np.int32, '2': np.int32})
+    # sort d into d1 by values of start times[1], ascending
+    d1 = d.sort_values(by=1)
+    # Create a 4th column, set to 0, for the Completion time
+    d1[3] = 0
+    # change column names
+    d1.columns = ['Process', 'Start', 'Duration', 'Completion']
+    # intialize counter
+    counter = 0
+    # if any values in column 'Duration' are above 0, continue the loop
+	while (d1['Duration']).any() > 0:
+    for index, row in d1.iterrows():
+        # if value in column 'Duration' > the timeslice, add the value of the timeslice to the current counter,
+        # subtract it from the the current value in column 'Duration'
+        if row.Duration > timeslice:
+            counter += timeslice
+            #row.Duration -= timeslice
+            # !!!LOOK HERE!!!
+            d1['Duration'][index] -= timeslice
+            print(index, row.Duration)
+        # if value in column "Duration" <= the timeslice, add the current value of the row:Duration to the counter
+        # subtract the Duration from itself, to make it 0
+        # set row:Completion to the current counter, which is the completion time for the process
+        elif row.Duration <= timeslice and row.Duration != 0:
+            counter += row.Duration
+            #row.Duration -= row.Duration
+            #row.Completion = counter
+            # !!!LOOK HERE!!!
+            d1['Duration'][index] = 0
+            d1['Completion'][index] = counter 
+            print(index, row.Duration)
+        # otherwise, if the value in Duration is already 0, print that index, with the "Done" indicator
+        else:
+            print(index, "Done")
